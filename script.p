@@ -7,4 +7,4 @@
  set title " EDO PVI "
  set xlabel "x"
  set ylabel "y"
- plot "datoshfijo.dat" using 1:2 title "ELASTICA" with lines,\
+ plot "datos.dat" using 1:2 title "ELASTICA" with lines,\

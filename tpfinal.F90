@@ -14,13 +14,15 @@
 PROGRAM TPFinal
 	
 	INTEGER(8),PARAMETER:: cantidadF=4						!cantidadF=Fuerzas puntuales
-	INTEGER(8),PARAMETER:: cantidadFD=0						!cantidadFD=Fuerzas distribuidas						
+	INTEGER(8),PARAMETER:: cantidadFD=0						!cantidadFD=Fuerzas distribuidas	
+	INTEGER(8), PARAMETER:: cantidadM=0					
 	INTEGER, PARAMETER :: cantEc=2
 	INTEGER(8) :: i	
 	REAL(8),PARAMETER:: pi=3.14159265359													
 	REAL(8) :: A, L, opcion,TRAMO=0 ,ModuloE=210000000,INERCIA=((0.1)**4)/12,h=0.01		!A=Apoyo doble o empotramiento, B=Apoyo simple o nulo, L=Largo viga (distancias)
 	REAL(8) :: M(cantidadF,3)											!M=Matriz esfuerzos (posición respecto a extremo, ángulo, valor)
 	REAL(8) :: MD(cantidadFD,3)											!MD=Matriz fuerzas distribuidas (posición respecto a extremo, ángulo, alcance, valor)
+	REAL(8) :: MM(cantidadM,2)
 	REAL(8) ::fxA,fyA,MzA,P	
 	CHARACTER(13) formato
 	REAL(8),DIMENSION(0:cantEc)::v,e						
@@ -60,13 +62,16 @@ PROGRAM TPFinal
 	!CARGAS DISTRIBUIDAS
 	!Esfuerzo 1
 	!	MD(1,1)=5														!MD(i,1)=Posición inicial carga distribuida i 
-	!	MD(1,2)=8				!SACAR		 ANGULO						!MD(i,2)=Posición final carga distribuida i (longitud)
-	!	MD(1,3)=-2														!MD(i,4)=Valor carga distribuida i														
+	!	MD(1,2)=8														!MD(i,2)=Posición final carga distribuida i (longitud)
+	!	MD(1,3)=-2														!MD(i,3)=Valor carga distribuida i														
 	!Esfuerzo 2
 	!	MD(2,1)=0
 	!	MD(2,2)=0
 	!	MD(2,3)=0
-		
+	
+	!momentos puntuales 
+	!	MM(1,1)=0 														!POSICION
+	!	MM(1,2)=0														!FUERZA
 
 	
 	WRITE(*,*) 'TRABAJO FINAL ANALISIS NUMERICO: "RESOLUCION DE UN SISTEMA ISOESTATICO DE VIGA"'
@@ -131,8 +136,7 @@ CONTAINS
 		CHARACTER(13) formato
 		WRITE(2,formato)v
 	END SUBROUTINE GrabaElastica
-!#######################################################################		
-
+	
 !#######################################################################	
 	FUNCTION v_prima(v)
 		REAL(8),DIMENSION(0:cantEc)::v_prima
@@ -204,7 +208,7 @@ CONTAINS
 				I=I-1
 			END DO		
 			
-!resuelve momentos distribuidos			
+	!resuelve momentos distribuidos			
 			I=cantidadFD
 			DO WHILE(MD(I,2)>=V0)
 				I=I-1
@@ -218,8 +222,16 @@ CONTAINS
 				TRAMO=TRAMO+MD(I,3)*(V0-MD(I,1))*((V0)-MD(I,1))/2.
 				I=I-1
 			END DO	
-						
-				
+	!RESUELVE MOMENTO PUNTUAL			
+			I=cantidadM
+			DO WHILE(MM(I,1)>=V0)
+				I=I-1
+			END DO
+			DO WHILE(I>0)
+				TRAMO=TRAMO+MM(I,1)
+			END DO
+			
+										
 	END SUBROUTINE 
 
 
@@ -244,7 +256,11 @@ CONTAINS
 		DO i=1,cantidadFD													!#Sumatoria cargas distribuidas
 			fyA=fyA+MD(i,3)*(MD(i,2)-MD(i,1))							    !Reacciones en y (fuerza)
 			MzA=MzA+ MD(i,3)*(MD(i,2)-MD(i,1))*((MD(i,2)+MD(i,1))/2.) 	!Reacciones en z (momento)      #FUERZA DISTRIBUIDA RECTANGULAR
-		END DO		
+		END DO
+		DO i=1,cantidadM												!#Sumatoria momentos externos
+			MzA=MzA+MM(i,2)												!Reacciones en z (momento)
+		END DO
+				
 		fxa=-fxa
 		fya=-fya
 		MzA=-MzA
