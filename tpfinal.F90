@@ -14,11 +14,11 @@
 PROGRAM TPFinal
 	
 	INTEGER(8),PARAMETER:: cantidadF=4						!cantidadF=Fuerzas puntuales
-	INTEGER(8),PARAMETER:: cantidadFD=1							!cantidadFD=Fuerzas distribuidas						
+	INTEGER(8),PARAMETER:: cantidadFD=0						!cantidadFD=Fuerzas distribuidas						
 	INTEGER, PARAMETER :: cantEc=2
 	INTEGER(8) :: i	
 	REAL(8),PARAMETER:: pi=3.14159265359													
-	REAL(8) :: A, L, opcion,TRAMO=0 ,ModuloE=210000000,INERCIA=((0.1)**4)/12,h=0.1				!A=Apoyo doble o empotramiento, B=Apoyo simple o nulo, L=Largo viga (distancias)
+	REAL(8) :: A, L, opcion,TRAMO=0 ,ModuloE=210000000,INERCIA=((0.1)**4)/12,h=0.01		!A=Apoyo doble o empotramiento, B=Apoyo simple o nulo, L=Largo viga (distancias)
 	REAL(8) :: M(cantidadF,3)											!M=Matriz esfuerzos (posición respecto a extremo, ángulo, valor)
 	REAL(8) :: MD(cantidadFD,3)											!MD=Matriz fuerzas distribuidas (posición respecto a extremo, ángulo, alcance, valor)
 	REAL(8) ::fxA,fyA,MzA,P	
@@ -40,7 +40,7 @@ PROGRAM TPFinal
 	!Esfuerzo 1
 		M(1,1)=2													    !M(i,1)=Posición esfuerzo i										
 		M(1,2)=-pi/2.													!M(i,2)=Ángulo esfuerzo i en radiantes
-		M(1,3)=10														!M(i,3)=Valor esfuerzo i
+		M(1,3)=5														!M(i,3)=Valor esfuerzo i
 	!Esfuerzo 2
 		M(2,1)=6
 		M(2,2)=pi/2.
@@ -52,16 +52,16 @@ PROGRAM TPFinal
 	!Esfuerzo 4
 		M(4,1)=10
 		M(4,2)=-PI/2.
-		M(4,3)=10
+		M(4,3)=25
 	!Esfuerzo 5
 	!	M(5,1)=0
 	!	M(5,2)=0
 	!	M(5,3)=0
 	!CARGAS DISTRIBUIDAS
 	!Esfuerzo 1
-		MD(1,1)=5														!MD(i,1)=Posición inicial carga distribuida i 
-		MD(1,2)=8				!SACAR		 ANGULO						!MD(i,2)=Posición final carga distribuida i (longitud)
-		MD(1,3)=-2														!MD(i,4)=Valor carga distribuida i														
+	!	MD(1,1)=5														!MD(i,1)=Posición inicial carga distribuida i 
+	!	MD(1,2)=8				!SACAR		 ANGULO						!MD(i,2)=Posición final carga distribuida i (longitud)
+	!	MD(1,3)=-2														!MD(i,4)=Valor carga distribuida i														
 	!Esfuerzo 2
 	!	MD(2,1)=0
 	!	MD(2,2)=0
@@ -96,19 +96,16 @@ PROGRAM TPFinal
 	
 	IF(opcion==1)THEN													!Sentencia tipo de viga
 		A=0
-		CALL calculoEmpotramiento(M,MD,fxA,fyA,MzA,P,L)
-	!Acá van las funciones para empotramiento, para diagramas 
-	
+		CALL calculoEmpotramiento(M,MD,fxA,fyA,MzA,P,L)	
 	!ACA VAN LAS FUNCIONES EMPOTRAMIENTO
 	WRITE(formato,'(A1,I1,A11)') '(', cantEc+1,'(F12.6,2X))'
-	OPEN(2,FILE='datoshfijo.dat',STATUS='REPLACE')
+	OPEN(2,FILE='datos.dat',STATUS='REPLACE')
 	WRITE(*,'(A/)')'Programa para resolver EDO con un paso fijo.'
 	WRITE(*,'(A/)')'Que metodo desea utilizar: '
 	WRITE(*,*)'1) Euler Simple.'
 	WRITE(*,*)'2) Euler Modificado.'
 	WRITE(*,*)'3) Runge Kutta Merson (4to orden).'
 	WRITE(*,*)'4) Runge Kutta Fehlberg (6to orden).'
-	WRITE(*,*)'5) Euler mejorado'
 	READ(*,*)metodo
 	DO WHILE (v(0)<=L)	
 	CALL GrabaElastica(v,formato)			
@@ -121,10 +118,7 @@ PROGRAM TPFinal
 					Call RungeKuttaMerson(v,h)
 				CASE(4)
 					CALL RungeKuttaFehlberg(v,h,e)
-				CASE(5)
-					CALL EulerMejorado(v,h)
 			END SELECT	
-		!WRITE(*,*) V
 	END DO
 	CLOSE(UNIT=2, STATUS='KEEP')
 	CALL graficar
@@ -146,9 +140,9 @@ CONTAINS
 		REAL(8)::V0,TRAMO=0
 		V0=v(0)
 		CALL creaTramo(M,MD,V0,TRAMO) 
-		v_prima(0)=1.0 ! derivada  de x respecto a x
+		v_prima(0)=1.0
 		v_prima(1)=v(2)
-		v_prima(2)=((-Mza +fya*v(0)+tramo)/(ModuloE*INERCIA))*((1+(v(2)**2))**(3/2.)) !0!v(0)!y respecto a x				  	
+		v_prima(2)=((-Mza +fya*v(0)+tramo)/(ModuloE*INERCIA))*((1+(v(2)**2))**(3/2.)) 				  	
 	END FUNCTION
 	
 !#######################################################################
@@ -164,13 +158,6 @@ CONTAINS
 		vp=h*v_prima(v)
 		v=v+h*(v_prima(v)+v_prima(v+vp))/2.0
 	END SUBROUTINE
-!#######################################################################
-	SUBROUTINE EulerMejorado(v,h)
-		REAL(8), DIMENSION (0:cantEc) :: v, vp
-		REAL(8) h
-		vp=v +(h/2.0)*v_prima(v)
-		v=v + h*v_prima(vp)
-	END SUBROUTINE EulerMejorado
 !#######################################################################	
 	SUBROUTINE RungeKuttaMerson(v, h)
 		REAL(8), DIMENSION (0:cantEc) :: v, k1, k2, k3, k4
@@ -216,20 +203,22 @@ CONTAINS
 				TRAMO=TRAMO+M(I,3)*sin(M(I,2))*(V0-M(I,1))
 				I=I-1
 			END DO		
+			
+!resuelve momentos distribuidos			
 			I=cantidadFD
 			DO WHILE(MD(I,2)>=V0)
 				I=I-1
 			END DO
-			IF (MD(I,2)<=V0) THEN
-				TRAMO=TRAMO+MD(I,3)*(MD(I,2)-MD(I,1))*(V0-(MD(I,1)+MD(I,2))/2.)
-			ELSE
+			IF (MD(I,2)<=V0) THEN !V0 FUERA DE LA ZONA DE LA CARGA DISTRIBUIDA
+				TRAMO=TRAMO+MD(I,3)*(MD(I,2)-MD(I,1))*(V0-((MD(I,2)-MD(I,1))/2.) +MD(I,1))
+			ELSE!V0 DENTRO DE LA ZONA DE LA CARGA DISTRIBUIDA
 				TRAMO=TRAMO+MD(I,3)*(V0-MD(I,1))*((V0)-MD(I,1))/2.	
 			END IF
 			DO WHILE(I>0)	
 				TRAMO=TRAMO+MD(I,3)*(V0-MD(I,1))*((V0)-MD(I,1))/2.
 				I=I-1
 			END DO	
-							
+						
 				
 	END SUBROUTINE 
 
@@ -252,7 +241,7 @@ CONTAINS
 			fyA=fyA+M(i,3)*(sin(M(i,2)))								!Reacciones en y (fuerza)                             #PONER PESO EN UNA SOLA ITERACIÓN
 			MzA=MzA+M(i,3)*(sin(M(i,2)))*M(i,1)							!Reacciones en z (momento)
 		END DO
-		DO i=1,cantidadFD													!#Sumatoria cargas puntuales+distribuidas
+		DO i=1,cantidadFD													!#Sumatoria cargas distribuidas
 			fyA=fyA+MD(i,3)*(MD(i,2)-MD(i,1))							    !Reacciones en y (fuerza)
 			MzA=MzA+ MD(i,3)*(MD(i,2)-MD(i,1))*((MD(i,2)+MD(i,1))/2.) 	!Reacciones en z (momento)      #FUERZA DISTRIBUIDA RECTANGULAR
 		END DO		
@@ -261,9 +250,9 @@ CONTAINS
 		MzA=-MzA
 		Write(*,*) '-------------------------------------------------------------------------------'
 		WRITE(*,*) 'Reacciones en el empotramiento: fuerza en x, fuerza en y, momento en z'
-		WRITE(*,*)'Fx =', fxA,'kN'
-		WRITE(*,*)'Fy =', fyA,'kN'
-		WRITE(*,*)'Mz =', MzA,'kJ'
+		WRITE(*,*)'Fx =', fxA,'N'
+		WRITE(*,*)'Fy =', fyA,'N'
+		WRITE(*,*)'Mz =', MzA,'J'
 	END SUBROUTINE
 	
 SUBROUTINE graficar
@@ -277,7 +266,7 @@ WRITE(3,*)'set grid'
 WRITE(3,*)'set title " EDO PVI "'
 WRITE(3,*)'set xlabel "x"'
 WRITE(3,*)'set ylabel "y"'
-WRITE(3,*)'plot "datoshfijo.dat" using 1:2 title "ELASTICA" with lines,\'
+WRITE(3,*)'plot "datos.dat" using 1:2 title "ELASTICA" with lines,\'
 CLOSE(UNIT=3,STATUS='KEEP')
 CALL SYSTEM("gnuplot -persist script.p")
 END SUBROUTINE graficar
