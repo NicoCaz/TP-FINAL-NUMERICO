@@ -7,5 +7,6 @@
  set title " EDO PVI "
  set xlabel "x"
  set ylabel "y"
- plot "datoshfijo.dat" using 1:1 title "Presas" with lines,\
- "datoshfijo.dat" using 1:2 title "Depredadores" with lines,\
+ plot "datoshfijo.dat" using 1:2 title "Y1" with lines,\
+ "datoshfijo.dat" using 1:3 title "Y2" with lines,\
+ "datoshfijo.dat" using 1:1 title "Y3" with lines,\
