@@ -19,9 +19,9 @@ PROGRAM TPFinal
 	INTEGER, PARAMETER :: cantEc=2
 	INTEGER(8) :: i	
 	REAL(8),PARAMETER:: pi=3.14159265359													
-	REAL(8) :: A, L, opcion,TRAMO=0 ,ModuloE=210000000,INERCIA=((0.1)**4)/12,h=0.01		!A=Apoyo doble o empotramiento, B=Apoyo simple o nulo, L=Largo viga (distancias)
-	REAL(8) :: M(cantidadF,3)											!M=Matriz esfuerzos (posición respecto a extremo, ángulo, valor)
-	REAL(8) :: MD(cantidadFD,3)											!MD=Matriz fuerzas distribuidas (posición respecto a extremo, ángulo, alcance, valor)
+	REAL(8) :: A, L, opcion,ModuloE=210000000,INERCIA=((0.1)**4)/12,h=0.01		!A=Apoyo doble o empotramiento, B=Apoyo simple o nulo, L=Largo viga (distancias)
+	REAL(8) :: M(cantidadF,3)													!M=Matriz esfuerzos (posición respecto a extremo, ángulo, valor)
+	REAL(8) :: MD(cantidadFD,3)													!MD=Matriz fuerzas distribuidas (posición respecto a extremo, ángulo, alcance, valor)
 	REAL(8) :: MM(cantidadM,2)
 	REAL(8) ::fxA,fyA,MzA,P	
 	CHARACTER(13) formato
@@ -141,12 +141,11 @@ CONTAINS
 	FUNCTION v_prima(v)
 		REAL(8),DIMENSION(0:cantEc)::v_prima
 		REAL(8),DIMENSION(0:cantEc)::v
-		REAL(8)::V0,TRAMO=0
-		V0=v(0)
-		CALL creaTramo(M,MD,V0,TRAMO) 
+		REAL(8)::TRAMO=0
+		CALL creaTramo(M,MD,v(0),TRAMO) 
 		v_prima(0)=1.0
 		v_prima(1)=v(2)
-		v_prima(2)=((-Mza +fya*v(0)+tramo)/(ModuloE*INERCIA))*((1+(v(2)**2))**(3/2.)) 				  	
+		v_prima(2)=((-Mza +fya*v(0)+TRAMO)/(ModuloE*INERCIA))*((1+(v(2)**2))**(3/2.)) 				  	
 	END FUNCTION
 	
 !#######################################################################
@@ -193,11 +192,10 @@ CONTAINS
 !M(i,3)=Valor esfuerzo i
 	SUBROUTINE creaTramo(M,MD,V0,TRAMO)
 			REAL(8) ::M(cantidadF,3)
-			REAL(8)::MD(cantidadFD,3)
+			REAL(8)	::MD(cantidadFD,3)
 			REAL(8) ::V0
 			REAL(8) ::TRAMO		
 			INTEGER(8)::I
-			TRAMO=0
 			I=cantidadF	
 			TRAMO=-P*(V0)*(V0)/2.	
 			DO WHILE (M(I,1)>=V0)
@@ -206,9 +204,8 @@ CONTAINS
 			DO WHILE(I>0)			
 				TRAMO=TRAMO+M(I,3)*sin(M(I,2))*(V0-M(I,1))
 				I=I-1
-			END DO		
-			
-	!resuelve momentos distribuidos			
+			END DO					
+			!resuelve momentos distribuidos			
 			I=cantidadFD
 			DO WHILE(MD(I,2)>=V0)
 				I=I-1
@@ -222,21 +219,15 @@ CONTAINS
 				TRAMO=TRAMO+MD(I,3)*(V0-MD(I,1))*((V0)-MD(I,1))/2.
 				I=I-1
 			END DO	
-	!RESUELVE MOMENTO PUNTUAL			
+			!RESUELVE MOMENTO PUNTUAL			
 			I=cantidadM
 			DO WHILE(MM(I,1)>=V0)
 				I=I-1
 			END DO
 			DO WHILE(I>0)
 				TRAMO=TRAMO+MM(I,1)
-			END DO
-			
-										
+			END DO									
 	END SUBROUTINE 
-
-
-
-
 !#######################################################################	
 	!MD(i,1)=Posición inicial carga distribuida i  
 	!MD(i,2)=posicion final carga distribuida i (longitud)
