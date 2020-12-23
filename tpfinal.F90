@@ -75,12 +75,18 @@ PROGRAM TPFinal
 
 	
 	WRITE(*,*) 'TRABAJO FINAL ANALISIS NUMERICO: "RESOLUCION DE UN SISTEMA ISOESTATICO DE VIGA"'
-	WRITE(*,*)
+	WRITE(*,*) 'PARA CALCULO DE VIGA EMPOTRADA'
 	WRITE(*,*) '-------------------------------------------------------------------------------'
-	WRITE(*,*) 'Seleccione una de las siguientes opciones:'
-	WRITE(*,*) '(1): Viga empotrada'
-	WRITE(*,*) '(2): Viga apoyada en los extremos (proximamente)'
-	READ(*,*)  opcion
+	WRITE(*,*) ' '
+	WRITE(*,*) ' '
+	WRITE(*,*) '/|'
+	WRITE(*,*) '/|'
+	WRITE(*,*) '/|'
+	WRITE(*,*) '/|----------------------------------------'
+	WRITE(*,*) '/|'
+	WRITE(*,*) '/|'
+	WRITE(*,*) '/|'
+	WRITE(*,*) ' '
 	WRITE(*,*) '-------------------------------------------------------------------------------'
 	WRITE(*,*) 'Ingrese largo de la viga (m)'
 	READ(*,*)  L
@@ -89,7 +95,7 @@ PROGRAM TPFinal
 	WRITE(*,*) '(1): Peso de la viga despreciable'
 	WRITE(*,*) '(2): Peso de la viga no despreciable'
 	READ(*,*) opcionpeso
-	
+	opcion=1
 	IF (opcionpeso==1) THEN												!Sentencia peso de la viga
 		P=0
 	ELSE IF (opcionpeso==2) THEN
@@ -102,18 +108,16 @@ PROGRAM TPFinal
 	IF(opcion==1)THEN													!Sentencia tipo de viga
 		A=0
 		CALL calculoEmpotramiento(M,MD,fxA,fyA,MzA,P,L)	
-	!ACA VAN LAS FUNCIONES EMPOTRAMIENTO
-	WRITE(formato,'(A1,I1,A11)') '(', cantEc+1,'(F12.6,2X))'
-	OPEN(2,FILE='datos.dat',STATUS='REPLACE')
-	WRITE(*,'(A/)')'Programa para resolver EDO con un paso fijo.'
-	WRITE(*,'(A/)')'Que metodo desea utilizar: '
-	WRITE(*,*)'1) Euler Simple.'
-	WRITE(*,*)'2) Euler Modificado.'
-	WRITE(*,*)'3) Runge Kutta Merson (4to orden).'
-	WRITE(*,*)'4) Runge Kutta Fehlberg (6to orden).'
-	READ(*,*)metodo
-	DO WHILE (v(0)<=L)	
-	CALL GrabaElastica(v,formato)			
+		WRITE(formato,'(A1,I1,A11)') '(', cantEc+1,'(F12.6,2X))'
+		OPEN(2,FILE='datos.dat',STATUS='REPLACE')
+		WRITE(*,'(A/)')'Que metodo desea utilizar: '
+		WRITE(*,*)'1) Euler Simple.'
+		WRITE(*,*)'2) Euler Modificado.'
+		WRITE(*,*)'3) Runge Kutta Merson (4to orden).'
+		WRITE(*,*)'4) Runge Kutta Fehlberg (6to orden).'
+		READ(*,*)metodo
+		DO WHILE (v(0)<=L)	
+		CALL GrabaElastica(v,formato)			
 			SELECT CASE (metodo)
 				CASE(1)
 					CALL EulerSimple(v,h)
