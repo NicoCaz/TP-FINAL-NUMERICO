@@ -10,12 +10,12 @@
 
 PROGRAM TPFinal
 	
-	INTEGER(8),PARAMETER:: cantidadF=0						!cantidadF=Fuerzas puntuales
-	INTEGER(8),PARAMETER:: cantidadFD=1						!cantidadFD=Fuerzas distribuidas					
+	INTEGER(8),PARAMETER:: cantidadF=1						!cantidadF=Fuerzas puntuales
+	INTEGER(8),PARAMETER:: cantidadFD=0						!cantidadFD=Fuerzas distribuidas					
 	INTEGER, PARAMETER :: cantEc=2
 	INTEGER(8) :: i	
 	REAL(8),PARAMETER:: pi=3.14159265359													
-	REAL(8) :: L, opcion,ModuloE=210000000,INERCIA=0.0002014000,h=0.01		    !L=Largo viga (distancias)
+	REAL(8) :: L, opcion,ModuloE=700000000,INERCIA=0.000520,h=0.1		    !L=Largo viga (distancias)
 	REAL(8) :: M(cantidadF,3)													!M=Matriz esfuerzos (posición respecto a extremo, ángulo, valor)
 	REAL(8) :: MD(cantidadFD,3)													!MD=Matriz fuerzas distribuidas (posición respecto a extremo, ángulo, alcance, valor)
 	REAL(8) ::fxA,fyA,MzA,P	
@@ -35,21 +35,21 @@ PROGRAM TPFinal
 	
 	!CARGAS PUNTUALES
 	!Esfuerzo 1
-	!	M(1,1)=10													    !M(i,1)=Posición esfuerzo i										
-	!	M(1,2)=-pi/2.													!M(i,2)=Ángulo esfuerzo i en radiantes
-	!	M(1,3)=10														!M(i,3)=Valor esfuerzo i
-	!Esfuerzo 2
-	!	M(2,1)=6
-	!	M(2,2)=pi/2.
-	!	M(2,3)=10
-	!Esfuerzo 3
-	!	M(3,1)=7
-	!	M(3,2)=pi/2.
-	!	M(3,3)=10
-	!Esfuerzo 4
-	!	M(4,1)=10
-	!	M(4,2)=-PI/2.
-	!	M(4,3)=25
+	M(1,1)=5													    !M(i,1)=Posición esfuerzo i										
+	M(1,2)=-pi/2.													!M(i,2)=Ángulo esfuerzo i en radiantes
+	M(1,3)=2669.84													!M(i,3)=Valor esfuerzo i
+!Esfuerzo 2
+	!M(2,1)=2.5
+	!M(2,2)=pi/2.
+	!M(2,3)=1000
+!Esfuerzo 3
+	!M(3,1)=7
+	!M(3,2)=pi/2.
+	!M(3,3)=10
+!Esfuerzo 4
+	!M(4,1)=10
+	!M(4,2)=-PI/2.
+	!M(4,3)=25
 	!Esfuerzo 5
 	!	M(5,1)=0
 	!	M(5,2)=0
@@ -57,8 +57,8 @@ PROGRAM TPFinal
 	!CARGAS DISTRIBUIDAS
 	!Esfuerzo 1
 		MD(1,1)=0														!MD(i,1)=Posición inicial carga distribuida i 
-		MD(1,2)=10														!MD(i,2)=Posición final carga distribuida i (longitud)
-		MD(1,3)=-10														!MD(i,3)=Valor carga distribuida i														
+		MD(1,2)=5														!MD(i,2)=Posición final carga distribuida i (longitud)
+		MD(1,3)=-295													!MD(i,3)=Valor carga distribuida i														
 	!Esfuerzo 2
 	!	MD(2,1)=0
 	!	MD(2,2)=0
@@ -79,8 +79,8 @@ PROGRAM TPFinal
 	WRITE(*,*) ' '
 	WRITE(*,*) '-------------------------------------------------------------------------------'
 	WRITE(*,*) 'Ingrese largo de la viga (m)'
-	READ(*,*)  L
-	!L=10
+	!READ(*,*)  L
+	L=5
 	WRITE(*,*) '-------------------------------------------------------------------------------'
 	WRITE(*,*) 'Seleccione las siguientes opciones'
 	WRITE(*,*) '(1): Peso de la viga despreciable'
@@ -93,8 +93,8 @@ PROGRAM TPFinal
 	WRITE(*,*)'2) Euler Modificado.'
 	WRITE(*,*)'3) Runge Kutta Merson (4to orden).'
 	WRITE(*,*)'4) Runge Kutta Fehlberg (6to orden).'
-	READ(*,*)metodo
-	!metodo=1
+	!READ(*,*)metodo
+	metodo=4
 	DO WHILE (v(0)<=L)	
 	CALL GrabaElastica(v,formato)			
 		SELECT CASE (metodo)
@@ -148,6 +148,7 @@ CONTAINS
 		v=v+((25*k1/216.0)+(1408*k3/2565.0)+(2197*k4/4104.0)-(0.2*k5))
 		e=k1/360.0-128*k3/4275.0-2197*k4/75240.0+0.02*k5+2*k6/55.0
 	END SUBROUTINE RungeKuttaFehlberg
+
 SUBROUTINE GrabaElastica(v,formato)
 		REAL(8), DIMENSION(0:cantEc) :: v
 		CHARACTER(13) formato
@@ -173,7 +174,7 @@ SUBROUTINE GrabaElastica(v,formato)
 			REAL(8) ::M(cantidadF,3)
 			REAL(8)	::MD(cantidadFD,3)
 			REAL(8) ::V0
-			REAL(8) ::TRAMO,CENTRO=0,FUERZA=0,LARGO=0		
+			REAL(8) ::TRAMO	
 			INTEGER(8)::I
 			I=cantidadF	
 			TRAMO=0	
@@ -194,15 +195,10 @@ SUBROUTINE GrabaElastica(v,formato)
 					I=I-1
 				END DO
 				IF (MD(I,2)>V0) THEN !V0 FUERA DE LA ZONA DE LA CARGA DISTRIBUIDA
-					LARGO=V0-MD(I,1)
-					FUERZA=(LARGO*MD(I,3))
-					CENTRO=(LARGO/2.)+MD(I,1)   
+					TRAMO=TRAMO+(V0-((V0-MD(I,1))/2.)+MD(I,1))*((V0-MD(I,1))*MD(I,3))
 				ELSE!V0 DENTRO DE LA ZONA DE LA CARGA DISTRIBUIDA
-					LARGO=MD(I,2)-MD(I,1)
-					FUERZA=LARGO*MD(I,3)
-					CENTRO=(LARGO/2.)+MD(I,1)
+					TRAMO=TRAMO+(V0-(((MD(I,2)-MD(I,1))/2.)+MD(I,1)))*((MD(I,2)-MD(I,1))*MD(I,3))
 				END IF
-				TRAMO=TRAMO+(V0-CENTRO)*FUERZA
 				I=I-1
 				DO WHILE(I>0)	
 					TRAMO=TRAMO+MD(I,3)*(MD(I,2)-MD(I,1))*(V0-(((V0-MD(I,1))/2.)+MD(I,1)) )
@@ -220,8 +216,8 @@ SUBROUTINE GrabaElastica(v,formato)
 		REAL(8) ::M(cantidadF,3)   
 		REAL(8) ::MD(cantidadFD,3)										
 		REAL(8) ::fxA,fyA,MzA,P,L   
-		fyA=-P*L	
-		MzA=-P*(L)*((L/2.))
+		fyA=0	
+		MzA=0
 		DO i=1,cantidadF												!#Sumatoria cargas puntuales
 			fxA=fxA+M(i,3)*(cos(M(i,2)))								!Reacciones en x (fuerza)							
 			fyA=fyA+M(i,3)*(sin(M(i,2)))								!Reacciones en y (fuerza)                             #PONER PESO EN UNA SOLA ITERACIÓN
