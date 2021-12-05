@@ -1,24 +1,21 @@
 !###########################################################################################
-!CANTIDAD DE FUERZAS PUNTUALES, DISTRIBUIDAS Y MOMENTOS SE INGRESA POR TECLADO EN PROGRAMA
-!PESO VIGA SE INGRESA POR TECLADO EN PROGRAMA
+!CANTIDAD DE FUERZAS PUNTUALES Y DISTRIBUIDAS SE INGRESA POR TECLADO EN PROGRAMA
 !FUERZAS PUNTUALES SE INGRESAN POR TECLADO EN PROGRAMA (POSICIÓN, ÁNGULO, VALOR)
 !FUERZAS DISTRIBUIDAS SE INGRESAN POR TECLADO EN PROGRAMA (POSICIÓN, ÁNGULO, ALCANCE, VALOR)
 !MOMENTOS SE INGRESAN POR TECLADO EN PROGRAMA (POSICIÓN, SENTIDO, VALOR)
-!SENTIDO 1 ANTIHORARIO, SENTIDO 2 HORARIO
 !ÁNGULO = SENTIDO ANTIHORARIO 
-!PREGUNTA OPCION VIGA EMPOTRADA, APOYADA
 !PREGUNTA DISTANCIA APOYOS
 !PREGUNTA LARGO DE LA VIGA
 !###########################################################################################
 
 PROGRAM TPFinal
 	
-	INTEGER(8),PARAMETER:: cantidadF=2						!cantidadF=Fuerzas puntuales
-	INTEGER(8),PARAMETER:: cantidadFD=0						!cantidadFD=Fuerzas distribuidas					
+	INTEGER(8),PARAMETER:: cantidadF=1						!cantidadF=Fuerzas puntuales
+	INTEGER(8),PARAMETER:: cantidadFD=1						!cantidadFD=Fuerzas distribuidas					
 	INTEGER, PARAMETER :: cantEc=2
 	INTEGER(8) :: i	
 	REAL(8),PARAMETER:: pi=3.14159265359													
-	REAL(8) :: L, opcion,ModuloE=210000000,INERCIA=((0.1)**4)/12,h=0.1		    !L=Largo viga (distancias)
+	REAL(8) :: L, opcion,ModuloE=210000000,INERCIA=((0.1)**4)/12,h=0.01		    !L=Largo viga (distancias)
 	REAL(8) :: M(cantidadF,3)													!M=Matriz esfuerzos (posición respecto a extremo, ángulo, valor)
 	REAL(8) :: MD(cantidadFD,3)													!MD=Matriz fuerzas distribuidas (posición respecto a extremo, ángulo, alcance, valor)
 	REAL(8) ::fxA,fyA,MzA,P	
@@ -39,12 +36,12 @@ PROGRAM TPFinal
 	!CARGAS PUNTUALES
 	!Esfuerzo 1
 		M(1,1)=10													    !M(i,1)=Posición esfuerzo i										
-		M(1,2)=-pi/2.													!M(i,2)=Ángulo esfuerzo i en radiantes
-		M(1,3)=5														!M(i,3)=Valor esfuerzo i
+		M(1,2)=pi/2.													!M(i,2)=Ángulo esfuerzo i en radiantes
+		M(1,3)=10														!M(i,3)=Valor esfuerzo i
 	!Esfuerzo 2
-		M(2,1)=6
-		M(2,2)=pi/2.
-		M(2,3)=10
+	!	M(2,1)=6
+	!	M(2,2)=pi/2.
+	!	M(2,3)=10
 	!Esfuerzo 3
 	!	M(3,1)=7
 	!	M(3,2)=pi/2.
@@ -59,9 +56,9 @@ PROGRAM TPFinal
 	!	M(5,3)=0
 	!CARGAS DISTRIBUIDAS
 	!Esfuerzo 1
-	!	MD(1,1)=0														!MD(i,1)=Posición inicial carga distribuida i 
-	!	MD(1,2)=10														!MD(i,2)=Posición final carga distribuida i (longitud)
-	!	MD(1,3)=-2														!MD(i,3)=Valor carga distribuida i														
+		MD(1,1)=0														!MD(i,1)=Posición inicial carga distribuida i 
+		MD(1,2)=10														!MD(i,2)=Posición final carga distribuida i (longitud)
+		MD(1,3)=-10														!MD(i,3)=Valor carga distribuida i														
 	!Esfuerzo 2
 	!	MD(2,1)=0
 	!	MD(2,2)=0
