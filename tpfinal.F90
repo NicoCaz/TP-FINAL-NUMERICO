@@ -11,11 +11,11 @@
 PROGRAM TPFinal
 	
 	INTEGER(8),PARAMETER:: cantidadF=1						!cantidadF=Fuerzas puntuales
-	INTEGER(8),PARAMETER:: cantidadFD=0						!cantidadFD=Fuerzas distribuidas					
+	INTEGER(8),PARAMETER:: cantidadFD=1						!cantidadFD=Fuerzas distribuidas					
 	INTEGER, PARAMETER :: cantEc=2
 	INTEGER(8) :: i	
 	REAL(8),PARAMETER:: pi=3.14159265359													
-	REAL(8) :: L, opcion,ModuloE=700000000,INERCIA=0.000520,h=0.01		    !L=Largo viga (distancias)
+	REAL(8) :: L, opcion,ModuloE=1700000000,INERCIA=0.000520,h=0.01		    !L=Largo viga (distancias)
 	REAL(8) :: M(cantidadF,3)													!M=Matriz esfuerzos (posición respecto a extremo, ángulo, valor)
 	REAL(8) :: MD(cantidadFD,3)													!MD=Matriz fuerzas distribuidas (posición respecto a extremo, ángulo, alcance, valor)
 	REAL(8) ::fxA,fyA,MzA,P	
@@ -52,9 +52,9 @@ PROGRAM TPFinal
 	!M(4,3)=1500
 	!PESO DE LA VIGA
 	!Esfuerzo 1
-	!	MD(1,1)=0														!MD(i,1)=Posición inicial carga distribuida i 
-	!	MD(1,2)=5														!MD(i,2)=Posición final carga distribuida i (longitud)
-	!	MD(1,3)=-196.2												!MD(i,3)=Valor carga distribuida i															
+		MD(1,1)=0														!MD(i,1)=Posición inicial carga distribuida i 
+		MD(1,2)=5														!MD(i,2)=Posición final carga distribuida i (longitud)
+		MD(1,3)=-196.2												!MD(i,3)=Valor carga distribuida i															
 	WRITE(*,*) 'TRABAJO FINAL ANALISIS NUMERICO: "RESOLUCION DE UN SISTEMA ISOESTATICO DE VIGA"'
 	WRITE(*,*) 'PARA CALCULO DE VIGA EMPOTRADA'
 	WRITE(*,*) '-------------------------------------------------------------------------------'
@@ -83,7 +83,7 @@ PROGRAM TPFinal
 	WRITE(*,*)'2) Euler Modificado.'
 	WRITE(*,*)'3) Runge Kutta Merson (4to orden).'
 	WRITE(*,*)'4) Runge Kutta Fehlberg (6to orden).'
-	READ(*,*)metodo
+	READ(*,*)metodo	
 	DO WHILE (v(0)<=L)	
 	CALL GrabaElastica(v,formato)			
 		SELECT CASE (metodo)
