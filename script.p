@@ -4,7 +4,7 @@
  set xtic auto                          # establece automaticamente las divisiones del eje x
  set ytic auto                          # establece automaticamente las divisiones del eje y
  set grid
- set title " EDO PVI "
- set xlabel "x"
- set ylabel "y"
+ set title "Calculo elastica Viga"
+ set xlabel "Largo Vija"
+ set ylabel "Metros"
  plot "datos.dat" using 1:2 title "ELASTICA" with lines,\
