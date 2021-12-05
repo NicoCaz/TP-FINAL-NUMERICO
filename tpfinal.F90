@@ -10,12 +10,12 @@
 
 PROGRAM TPFinal
 	
-	INTEGER(8),PARAMETER:: cantidadF=1						!cantidadF=Fuerzas puntuales
+	INTEGER(8),PARAMETER:: cantidadF=0						!cantidadF=Fuerzas puntuales
 	INTEGER(8),PARAMETER:: cantidadFD=1						!cantidadFD=Fuerzas distribuidas					
 	INTEGER, PARAMETER :: cantEc=2
 	INTEGER(8) :: i	
 	REAL(8),PARAMETER:: pi=3.14159265359													
-	REAL(8) :: L, opcion,ModuloE=210000000,INERCIA=((0.1)**4)/12,h=0.01		    !L=Largo viga (distancias)
+	REAL(8) :: L, opcion,ModuloE=210000000,INERCIA=0.0002014000,h=0.01		    !L=Largo viga (distancias)
 	REAL(8) :: M(cantidadF,3)													!M=Matriz esfuerzos (posición respecto a extremo, ángulo, valor)
 	REAL(8) :: MD(cantidadFD,3)													!MD=Matriz fuerzas distribuidas (posición respecto a extremo, ángulo, alcance, valor)
 	REAL(8) ::fxA,fyA,MzA,P	
@@ -35,9 +35,9 @@ PROGRAM TPFinal
 	
 	!CARGAS PUNTUALES
 	!Esfuerzo 1
-		M(1,1)=10													    !M(i,1)=Posición esfuerzo i										
-		M(1,2)=pi/2.													!M(i,2)=Ángulo esfuerzo i en radiantes
-		M(1,3)=10														!M(i,3)=Valor esfuerzo i
+	!	M(1,1)=10													    !M(i,1)=Posición esfuerzo i										
+	!	M(1,2)=-pi/2.													!M(i,2)=Ángulo esfuerzo i en radiantes
+	!	M(1,3)=10														!M(i,3)=Valor esfuerzo i
 	!Esfuerzo 2
 	!	M(2,1)=6
 	!	M(2,2)=pi/2.
@@ -79,8 +79,8 @@ PROGRAM TPFinal
 	WRITE(*,*) ' '
 	WRITE(*,*) '-------------------------------------------------------------------------------'
 	WRITE(*,*) 'Ingrese largo de la viga (m)'
-	!READ(*,*)  L
-	L=10
+	READ(*,*)  L
+	!L=10
 	WRITE(*,*) '-------------------------------------------------------------------------------'
 	WRITE(*,*) 'Seleccione las siguientes opciones'
 	WRITE(*,*) '(1): Peso de la viga despreciable'
@@ -93,8 +93,8 @@ PROGRAM TPFinal
 	WRITE(*,*)'2) Euler Modificado.'
 	WRITE(*,*)'3) Runge Kutta Merson (4to orden).'
 	WRITE(*,*)'4) Runge Kutta Fehlberg (6to orden).'
-	!READ(*,*)metodo
-	metodo=1
+	READ(*,*)metodo
+	!metodo=1
 	DO WHILE (v(0)<=L)	
 	CALL GrabaElastica(v,formato)			
 		SELECT CASE (metodo)
@@ -177,34 +177,38 @@ SUBROUTINE GrabaElastica(v,formato)
 			INTEGER(8)::I
 			I=cantidadF	
 			TRAMO=0	
-			DO WHILE (M(I,1)>=V0)
-				I=I-1
-			END DO
-			DO WHILE(I>0)			
-				TRAMO=TRAMO+M(I,3)*sin(M(I,2))*(V0-M(I,1))
-				I=I-1
-			END DO					
+			IF (I>0 )THEN
+				DO WHILE (M(I,1)>=V0)
+					I=I-1
+				END DO
+				DO WHILE(I>0)			
+					TRAMO=TRAMO+M(I,3)*sin(M(I,2))*(V0-M(I,1))
+					I=I-1
+				END DO
+			END IF					
 			!resuelve momentos distribuidos			
 			!#######################################################################
 			I=cantidadFD
-			DO WHILE(MD(I,1)>=V0)
+			IF (I>0 )THEN
+				DO WHILE(MD(I,1)>=V0)
+					I=I-1
+				END DO
+				IF (MD(I,2)>V0) THEN !V0 FUERA DE LA ZONA DE LA CARGA DISTRIBUIDA
+					LARGO=V0-MD(I,1)
+					FUERZA=(LARGO*MD(I,3))
+					CENTRO=(LARGO/2.)+MD(I,1)   
+				ELSE!V0 DENTRO DE LA ZONA DE LA CARGA DISTRIBUIDA
+					LARGO=MD(I,2)-MD(I,1)
+					FUERZA=LARGO*MD(I,3)
+					CENTRO=(LARGO/2.)+MD(I,1)
+				END IF
+				TRAMO=TRAMO+(V0-CENTRO)*FUERZA
 				I=I-1
-			END DO
-			IF (MD(I,2)>V0) THEN !V0 FUERA DE LA ZONA DE LA CARGA DISTRIBUIDA
-				LARGO=V0-MD(I,1)
-				FUERZA=(LARGO*MD(I,3))
-				CENTRO=(LARGO/2.)+MD(I,1)   
-			ELSE!V0 DENTRO DE LA ZONA DE LA CARGA DISTRIBUIDA
-				LARGO=MD(I,2)-MD(I,1)
-				FUERZA=LARGO*MD(I,3)
-				CENTRO=(LARGO/2.)+MD(I,1)
-			END IF
-			TRAMO=TRAMO+(V0-CENTRO)*FUERZA
-			I=I-1
-			DO WHILE(I>0)	
-				TRAMO=TRAMO+MD(I,3)*(MD(I,2)-MD(I,1))*(V0-(((V0-MD(I,1))/2.)+MD(I,1)) )
-				I=I-1
-			END DO	
+				DO WHILE(I>0)	
+					TRAMO=TRAMO+MD(I,3)*(MD(I,2)-MD(I,1))*(V0-(((V0-MD(I,1))/2.)+MD(I,1)) )
+					I=I-1
+				END DO	
+			END IF	
 			!#######################################################################			
 	END SUBROUTINE 
 !#######################################################################	
